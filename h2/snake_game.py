@@ -55,7 +55,7 @@ class SnakeEnv:
       (grid, hunger, smell)
         grid: np.float32 (1, 2N+1, 2N+1) -> encoded window around the head
               -1.0 = wall (including out-of-bounds when no-wrap)
-               0.5 = snake body (including head)
+              -0.5 = snake body (including head)
                1.0 = food
                0.0 = empty
         hunger: np.float32 scalar in [0,1]
@@ -278,7 +278,7 @@ class SnakeEnv:
                 if self.walls[y, x] == 1:
                     grid_2d[j, i] = -1.0
                 elif (x, y) in snake_set:
-                    grid_2d[j, i] = 0.5
+                    grid_2d[j, i] = -0.5
                 elif self.food is not None and (x, y) == self.food:
                     grid_2d[j, i] = 1.0
 

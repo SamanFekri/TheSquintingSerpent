@@ -2,7 +2,7 @@
 
 Variant of the baseline heuristic agent where the **N×N local grid encodes walls, the snake body, and food in a single channel**. Values are chosen to emphasize obstacles vs. rewards:
 - `-1.0` → walls (including borders when no wrap)
-- `0.5` → snake body (including the head)
+- `-0.5` → snake body (including the head)
 - `1.0` → food
 - `0.0` → empty space
 
