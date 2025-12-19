@@ -2,6 +2,16 @@
 
 Deep Q-Learning agent augmented with **lidar rays** that estimate distances to walls and the snake’s own body, giving the policy longer-range situational awareness than the baseline heuristic agent.
 
+> 🧭 **Design note**: Lidar supplements (but does not replace) the constrained first-person vision window so the policy still generalizes beyond a single map layout while reasoning locally like an in-world snake.
+
+## Feature summary
+- ✅ 3-channel local vision
+- ✅ Hunger scalar for reward shaping
+- ✅ Food “smell” (relative dx, dy)
+- ✅ Lidar beams for wall/body distance estimates
+- ✅ Compact vision encoder (small window) keeps the core CNN lightweight while lidar adds range
+- ❌ BFS-based reward shaping
+
 ## Observation space
 - Local grid `(2N+1)x(2N+1)` with walls, body, food (3 channels).
 - Hunger scalar in `[0, 1]`.

@@ -2,6 +2,17 @@
 
 Baseline Deep Q-Learning agent that relies on **local vision + food smell** to learn without any built-in path planning.
 
+> 🧭 **Design note**: The heuristic agent sees only a small window around its head, forcing first-person play and preventing overfitting
+> to the global map layout.
+
+## Feature summary
+- ✅ 3-channel local vision around the head
+- ✅ Hunger scalar for reward shaping
+- ✅ Food “smell” (relative dx, dy)
+- ✅ Compact CNN encoder thanks to the small vision window (fast to train, good performance)
+- ❌ Lidar beams
+- ❌ BFS-based reward shaping
+
 ## Observation space
 - 3-channel grid around the head `(2N+1)x(2N+1)` with walls, snake body, and food.
 - Hunger scalar in `[0, 1]` derived from steps since the last meal.

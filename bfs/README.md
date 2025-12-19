@@ -2,6 +2,16 @@
 
 DQN policy that keeps the lidar-enhanced observation space but adds **BFS-based reward shaping** to nudge the agent toward safer routes.
 
+> 🧭 **Design note**: BFS shaping works alongside the intentionally limited first-person vision window, helping the agent avoid overfitting to any single map while still reasoning locally.
+
+## Feature summary
+- ✅ 3-channel local vision
+- ✅ Hunger scalar for reward shaping
+- ✅ Food “smell” (relative dx, dy)
+- ✅ Lidar beams for wall/body distance estimates
+- ✅ BFS-based reward shaping for safety and space awareness
+- ✅ Compact vision encoder (small window) keeps the CNN small while shaping guides exploration
+
 ## Observation space
 - Local grid `(2N+1)x(2N+1)` with walls, body, food (3 channels).
 - Hunger scalar in `[0, 1]`.
