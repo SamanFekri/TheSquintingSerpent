@@ -16,6 +16,13 @@ A fully featured **Snake game with a Deep Q-Learning (DQN) agent**, supporting:
 - 💾 Save / load / resume training
 - 🏆 Best model & last model saving
 
+### 📂 Approaches in this repo
+- **`heuristic/`** – baseline DQN with local vision, hunger scalar, and food “smell” vector.
+- **`lidar/`** – extends the baseline with lidar rays that estimate distances to walls and the snake’s own body.
+- **`bfs/`** – builds on the lidar variant and adds BFS-based reward shaping to penalize traps and reward open space.
+
+Each folder ships its own README with usage tailored to the specific method.
+
 ---
 
 ## 📁 Project Structure
