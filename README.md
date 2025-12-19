@@ -1,7 +1,7 @@
 # 🐍 TheSquintingSerpent (Deep Reinforcement Learning)
 
 <p align="center">
-  <img src="media/logo.png" alt="Logo">
+  <img src="media/logo.png" alt="Logo" width="256" height="256">
 </p>
 
 A fully featured **Snake game with a Deep Q-Learning (DQN) agent**, supporting:
