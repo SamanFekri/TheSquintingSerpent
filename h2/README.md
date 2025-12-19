@@ -8,6 +8,17 @@ Variant of the baseline heuristic agent where the **N×N local grid encodes wall
 
 The agent still receives the hunger scalar and food “smell” vector.
 
+> 🧭 **Design note**: Like the baseline, H2 intentionally limits its vision to a local window so it learns first-person navigation instead
+> of overfitting to full-map patterns.
+
+## Feature summary
+- ✅ Single-channel encoded local vision
+- ✅ Hunger scalar for reward shaping
+- ✅ Food “smell” (relative dx, dy)
+- ✅ Compact CNN encoder (single channel + small window) for faster training with solid performance
+- ❌ Lidar beams
+- ❌ BFS-based reward shaping
+
 ## Observation space
 - 1-channel grid around the head `(2N+1) x (2N+1)` with the numeric encoding above.
 - Hunger scalar in `[0, 1]` derived from steps since the last meal.

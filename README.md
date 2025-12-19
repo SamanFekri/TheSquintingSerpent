@@ -4,7 +4,7 @@
   <img src="media/logo.png" alt="Logo" width="256" height="256">
 </p>
 
-A fully featured **Snake game with a Deep Q-Learning (DQN) agent**, supporting:
+A fully featured **Snake game with multiple Deep Q-Learning (DQN) variants**, supporting:
 
 - 🧠 Reinforcement Learning (PyTorch)
 - 👃 Food “smell” (relative food position)
@@ -16,28 +16,49 @@ A fully featured **Snake game with a Deep Q-Learning (DQN) agent**, supporting:
 - 💾 Save / load / resume training
 - 🏆 Best model & last model saving
 
-### 📂 Approaches in this repo
-- **`heuristic/`** – baseline DQN with local vision, hunger scalar, and food “smell” vector.
-- **`lidar/`** – extends the baseline with lidar rays that estimate distances to walls and the snake’s own body.
-- **`bfs/`** – builds on the lidar variant and adds BFS-based reward shaping to penalize traps and reward open space.
+### 📂 Agent variants in this repo
+- **`heuristic/`** – baseline DQN with **3-channel local vision**, **hunger scalar**, and **food “smell” vector**.
+- **`h2/`** – same sensors as the baseline but **compresses vision to a single encoded grid channel**.
+- **`lidar/`** – adds **lidar rays** for wall/body distances on top of the baseline observation space.
+- **`bfs/`** – keeps the lidar observation space and layers in **BFS-based reward shaping** for safety.
 
-Each folder ships its own README with usage tailored to the specific method.
+Each folder ships its own README with usage and a quick rundown of the features that specific model uses.
+
+> 🧭 **Design note**: All agents learn from a **limited, first-person vision window** around the snake’s head. Constraining visibility keeps
+> policies from overfitting to a single map layout and makes the agent play like a snake would—navigating locally—rather than from the
+> third-person, full-map view humans get in classic Snake.
+>
+> This small observation window also keeps the convolutional encoder **compact (fewer parameters)**, so models train faster while maintaining
+> strong, map-agnostic performance.
 
 ---
 
 ## 📁 Project Structure
 ```
 .
-├── snake_game.py # Game environment + pygame renderer
-├── dqn_agent.py # DQN model, replay buffer, checkpoints
-├── train.py # Training loop (with resume support)
-├── play.py # Play as human or watch trained AI
-├── maps/
-│ └── map_*.txt # Custom maps (0 = free, 1 = wall)
-├── models/
-│ ├── best.pt # Best model by score
-│ ├── last.pt # Last episode model
-│ └── checkpoint.pt # Full checkpoint (resume training)
+├── heuristic/   # Baseline DQN agent with 3-channel vision, hunger, smell
+│   ├── train.py
+│   ├── play.py
+│   ├── dqn_agent.py
+│   └── snake_game.py
+├── h2/          # Vision-compressed variant sharing the same sensors
+│   ├── train.py
+│   ├── play.py
+│   ├── dqn_agent.py
+│   └── snake_game.py
+├── lidar/       # Adds lidar distance rays to the observation
+│   ├── train.py
+│   ├── play.py
+│   ├── dqn_agent.py
+│   └── snake_game.py
+├── bfs/         # Lidar inputs plus BFS-based reward shaping
+│   ├── train.py
+│   ├── play.py
+│   ├── dqn_agent.py
+│   └── snake_game.py
+├── maps/        # Text map files used by all agents
+├── media/       # Assets (logo)
+├── requirements.txt
 └── README.md
 ```
 
@@ -241,6 +262,7 @@ Controls:
 - **Realistic Design**: Mirrors real agents (local sensors + goal direction).
 - **Reduced Overfitting**: No absolute positions or full-map shortcuts.
 - **Clean Action Space**: Encourages anticipation rather than memorization.
+- **Small, efficient networks**: Limited vision keeps the CNN tiny, reducing compute without sacrificing performance.
 
 
 ---
