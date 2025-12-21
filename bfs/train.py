@@ -50,7 +50,7 @@ def main():
     ap.add_argument("--games", type=int, default=2000, help="NEW episodes to run")
     ap.add_argument("--N", type=int, default=2, help="vision radius (2 => 5x5)")
     ap.add_argument("--num_rays", type=int, default=16)
-    ap.add_argument("--start_len", type=int, default=1)
+    ap.add_argument("--start_len", type=int, default=3)
     ap.add_argument("--seed", type=int, default=42, help="Random seed")
     ap.add_argument("--hunger_step", type=float, default=1.0, help="Hunger increase per step")
     ap.add_argument("--wrap", action="store_true")

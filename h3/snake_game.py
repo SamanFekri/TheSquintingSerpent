@@ -76,7 +76,7 @@ class SnakeEnv:
         self.width = int(width)
         self.height = int(height)
         self.N = int(vision_radius)
-        self.max_hunger = None if max_hunger is None else int(max_hunger)
+        self.max_hunger = 200 if max_hunger is None else int(max_hunger)
         self.hunger_step = float(hunger_step)
         self.wrap = bool(wrap)
         self.rng = random.Random(seed)
