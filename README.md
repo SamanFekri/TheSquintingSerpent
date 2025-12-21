@@ -19,6 +19,7 @@ A fully featured **Snake game with multiple Deep Q-Learning (DQN) variants**, su
 ### 📂 Agent variants in this repo
 - **`heuristic/`** – baseline DQN with **3-channel local vision**, **hunger scalar**, and **food “smell” vector**.
 - **`h2/`** – same sensors as the baseline but **compresses vision to a single encoded grid channel**.
+- **`h3/`** – H2-style sensors with the snake body **linearly encoded from tail (-0.01) to head (-0.99)** for clearer ordering.
 - **`lidar/`** – adds **lidar rays** for wall/body distances on top of the baseline observation space.
 - **`bfs/`** – keeps the lidar observation space and layers in **BFS-based reward shaping** for safety.
 
@@ -42,6 +43,11 @@ Each folder ships its own README with usage and a quick rundown of the features 
 │   ├── dqn_agent.py
 │   └── snake_game.py
 ├── h2/          # Vision-compressed variant sharing the same sensors
+│   ├── train.py
+│   ├── play.py
+│   ├── dqn_agent.py
+│   └── snake_game.py
+├── h3/          # Gradient-encoded body values (tail -0.01 → head -0.99)
 │   ├── train.py
 │   ├── play.py
 │   ├── dqn_agent.py
