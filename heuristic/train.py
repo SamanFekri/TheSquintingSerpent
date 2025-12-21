@@ -59,6 +59,7 @@ def main():
         wrap=args.wrap,
         seed=args.seed,
     )
+    env.use_global_random()
     agent = DQNAgent(vision_radius=args.N, lr=1e-3, gamma=0.99, batch_size=64)
 
     renderer = SnakeRenderer(env, cell_size=24, fps=args.fps) if args.render else None

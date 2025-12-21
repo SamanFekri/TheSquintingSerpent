@@ -117,6 +117,14 @@ class SnakeEnv:
 
         self.reset()
 
+    def use_global_random(self):
+        """Use the global ``random`` module for environment randomness.
+
+        This keeps food placement and other stochastic events aligned with
+        the global seed configured by callers.
+        """
+        self.rng = random
+
     @classmethod
     def from_map_file(
         cls,

@@ -43,6 +43,7 @@ def main():
         wrap=args.wrap,
         seed=args.seed,
     )
+    env.use_global_random()
     renderer = SnakeRenderer(env, cell_size=24, fps=args.fps)
 
     agent = None

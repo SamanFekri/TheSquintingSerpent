@@ -76,6 +76,7 @@ def main():
         death_penalty=args.death_penalty,
         seed=args.seed,
     )
+    env.use_global_random()
 
     lidar_dim = 2 * args.num_rays
     agent = DQNAgent(vision_radius=args.N, lidar_dim=lidar_dim, lr=1e-3, gamma=0.99, batch_size=64)

@@ -53,6 +53,7 @@ def main():
         start_length=args.start_len,
         bfs_shaping=args.bfs,
     )
+    env.use_global_random()
     renderer = SnakeRenderer(env, cell_size=24, fps=args.fps, padding=90)
 
     agent = None
