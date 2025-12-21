@@ -1,9 +1,21 @@
 # play.py
 import argparse
+import random
 import time
+
+import numpy as np
+import torch
 
 from snake_game import SnakeEnv, SnakeRenderer
 from dqn_agent import DQNAgent
+
+
+def set_global_seeds(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def main():
@@ -12,6 +24,8 @@ def main():
     ap.add_argument("--model", type=str, default="models/best.pt")
     ap.add_argument("--N", type=int, default=2)
     ap.add_argument("--num_rays", type=int, default=16)
+    ap.add_argument("--seed", type=int, default=42, help="Random seed")
+    ap.add_argument("--hunger_step", type=float, default=0.1, help="Hunger increase per step")
     ap.add_argument("--wrap", action="store_true")
     ap.add_argument("--no-wrap", dest="wrap", action="store_false")
     ap.set_defaults(wrap=True)
@@ -19,8 +33,16 @@ def main():
     ap.add_argument("--human", action="store_true")
     args = ap.parse_args()
 
+    set_global_seeds(args.seed)
+
     env = SnakeEnv.from_map_file(
-        args.map, vision_radius=args.N, max_hunger=200, wrap=args.wrap, num_rays=args.num_rays
+        args.map,
+        vision_radius=args.N,
+        max_hunger=200,
+        hunger_step=args.hunger_step,
+        wrap=args.wrap,
+        seed=args.seed,
+        num_rays=args.num_rays,
     )
     renderer = SnakeRenderer(env, cell_size=24, fps=args.fps, padding=90)
 

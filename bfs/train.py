@@ -1,6 +1,10 @@
 # train.py
 import argparse
 import os
+import random
+
+import numpy as np
+import torch
 
 from snake_game import SnakeEnv, SnakeRenderer, UP, DOWN, LEFT, RIGHT
 from dqn_agent import DQNAgent
@@ -19,6 +23,14 @@ def valid_actions_from_dir(direction):
     return [UP, DOWN, LEFT, RIGHT]
 
 
+def set_global_seeds(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--map", type=str, required=True)
@@ -26,6 +38,8 @@ def main():
     ap.add_argument("--N", type=int, default=2, help="vision radius (2 => 5x5)")
     ap.add_argument("--num_rays", type=int, default=16)
     ap.add_argument("--start_len", type=int, default=1)
+    ap.add_argument("--seed", type=int, default=42, help="Random seed")
+    ap.add_argument("--hunger_step", type=float, default=0.1, help="Hunger increase per step")
     ap.add_argument("--wrap", action="store_true")
     ap.add_argument("--no-wrap", dest="wrap", action="store_false")
     ap.set_defaults(wrap=True)
@@ -46,10 +60,13 @@ def main():
 
     args = ap.parse_args()
 
+    set_global_seeds(args.seed)
+
     env = SnakeEnv.from_map_file(
         args.map,
         vision_radius=args.N,
         max_hunger=200,
+        hunger_step=args.hunger_step,
         wrap=args.wrap,
         num_rays=args.num_rays,
         start_length=args.start_len,
@@ -57,6 +74,7 @@ def main():
         bfs_space_penalty=args.bfs_space_penalty,
         bfs_tail_penalty=args.bfs_tail_penalty,
         death_penalty=args.death_penalty,
+        seed=args.seed,
     )
 
     lidar_dim = 2 * args.num_rays

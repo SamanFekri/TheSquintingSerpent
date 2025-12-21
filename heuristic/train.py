@@ -1,6 +1,10 @@
 # train.py
 import argparse
 import os
+import random
+
+import numpy as np
+import torch
 
 from snake_game import SnakeEnv, SnakeRenderer, UP, DOWN, LEFT, RIGHT
 from dqn_agent import DQNAgent
@@ -19,10 +23,20 @@ def valid_actions_from_dir(direction):
     return [UP, DOWN, LEFT, RIGHT]
 
 
+def set_global_seeds(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--games", type=int, default=2000)
     ap.add_argument("--N", type=int, default=1, help="vision radius (1 => 3x3)")
+    ap.add_argument("--seed", type=int, default=42, help="Random seed")
+    ap.add_argument("--hunger_step", type=float, default=0.1, help="Hunger increase per step")
     ap.add_argument("--wrap", action="store_true")
     ap.add_argument("--no-wrap", dest="wrap", action="store_false")
     ap.set_defaults(wrap=True)
@@ -35,8 +49,15 @@ def main():
 
     args = ap.parse_args()
 
+    set_global_seeds(args.seed)
+
     env = SnakeEnv.from_map_file(
-        args.map, vision_radius=args.N, max_hunger=200, wrap=args.wrap
+        args.map,
+        vision_radius=args.N,
+        max_hunger=200,
+        hunger_step=args.hunger_step,
+        wrap=args.wrap,
+        seed=args.seed,
     )
     agent = DQNAgent(vision_radius=args.N, lr=1e-3, gamma=0.99, batch_size=64)
 
