@@ -71,6 +71,7 @@ class SnakeEnv:
         height: int,
         vision_radius: int = 2,
         max_hunger: int = 200,
+        hunger_step: float = 0.1,
         wrap: bool = True,
         wall_map: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
@@ -85,6 +86,7 @@ class SnakeEnv:
         self.height = int(height)
         self.N = int(vision_radius)
         self.max_hunger = int(max_hunger)
+        self.hunger_step = float(hunger_step)
         self.wrap = bool(wrap)
         self.num_rays = int(num_rays)
         self.start_length = max(1, int(start_length))
@@ -121,6 +123,7 @@ class SnakeEnv:
         map_path: str,
         vision_radius: int = 2,
         max_hunger: int = 200,
+        hunger_step: float = 0.1,
         wrap: bool = True,
         seed: Optional[int] = None,
         num_rays: int = 16,
@@ -137,6 +140,7 @@ class SnakeEnv:
             height=h,
             vision_radius=vision_radius,
             max_hunger=max_hunger,
+            hunger_step=hunger_step,
             wrap=wrap,
             wall_map=wall_map,
             seed=seed,
@@ -418,7 +422,7 @@ class SnakeEnv:
                     food_ch[j, i] = 1.0
 
         grid = np.stack([walls_ch, body_ch, food_ch], axis=0)
-        hunger = np.float32(min(self.steps_since_food / self.max_hunger, 1.0))
+        hunger = np.float32(self.steps_since_food / self.max_hunger)
 
         # smell vector
         if self.food is None:
@@ -481,8 +485,8 @@ class SnakeEnv:
             self._spawn_food()
         else:
             self.snake.pop()
-            self.steps_since_food += 1
-            hunger = min(self.steps_since_food / self.max_hunger, 1.0)
+            self.steps_since_food += self.hunger_step
+            hunger = self.steps_since_food / self.max_hunger
             reward += -0.01 - 0.02 * hunger
 
         # ✅ BFS reward shaping (environment-only)
@@ -583,7 +587,7 @@ class SnakeRenderer:
             color = (70, 220, 130) if idx == 0 else (50, 170, 105)
             pygame.draw.rect(self.screen, color, self._cell_rect(x, y), border_radius=6)
 
-        hunger = min(env.steps_since_food / env.max_hunger, 1.0)
+        hunger = env.steps_since_food / env.max_hunger
         hud = [f"Score: {env.score}   Hunger: {hunger:.2f}   Wrap: {env.wrap}"] + self.status_lines
 
         y0 = 10
