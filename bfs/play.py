@@ -1,7 +1,9 @@
 # play.py
 import argparse
+import csv
 import random
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -32,6 +34,8 @@ def main():
     ap.set_defaults(wrap=True)
     ap.add_argument("--fps", type=int, default=15)
     ap.add_argument("--human", action="store_true")
+    ap.add_argument("--games", type=int, default=1, help="Number of games to play before exiting")
+    ap.add_argument("--log-csv", type=str, help="Path to save per-game results as CSV (score, steps, duration, reason)")
 
     # BFS shaping in play mode usually OFF
     ap.add_argument("--bfs", action="store_true")
@@ -63,8 +67,24 @@ def main():
 
     obs = env.reset()
     done = False
+    game_idx = 1
+    steps = 0
+    start_time = time.time()
+    logs = []
 
-    while True:
+    def record_result(reason: str):
+        duration = time.time() - start_time
+        logs.append(
+            {
+                "game": game_idx,
+                "score": env.score,
+                "steps": steps,
+                "duration_sec": round(duration, 3),
+                "reason": reason,
+            }
+        )
+
+    while game_idx <= args.games:
         if renderer.poll_quit():
             renderer.close()
             return
@@ -76,18 +96,41 @@ def main():
             action = agent.act(grid, hunger, smell, lidar, epsilon=0.0)
 
         obs, reward, done, info = env.step(action)
+        steps += 1
 
         renderer.set_status([
             f"Mode: {'HUMAN' if args.human else 'AI'}",
             f"Model: {args.model if not args.human else '-'}",
             f"Rays: {args.num_rays}  Wrap: {args.wrap}",
+            f"Game: {game_idx}/{args.games}",
+            f"Score: {env.score}",
         ])
         renderer.draw()
 
         if done:
+            record_result(info.get("reason", ""))
             time.sleep(0.6)
+            game_idx += 1
+            if game_idx > args.games:
+                break
             obs = env.reset()
             done = False
+            steps = 0
+            start_time = time.time()
+
+    renderer.close()
+
+    if args.log_csv and logs:
+        csv_path = Path(args.log_csv)
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
+        with csv_path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f, fieldnames=["game", "score", "steps", "duration_sec", "reason"]
+            )
+            writer.writeheader()
+            writer.writerows(logs)
+
+        print(f"Saved game logs to {csv_path.resolve()}")
 
 
 if __name__ == "__main__":
