@@ -77,9 +77,9 @@ class SnakeEnv:
         num_rays: int = 16,
         start_length: int = 1,
         bfs_shaping: bool = True,
-        bfs_space_penalty: float = 0.5,
-        bfs_tail_penalty: float = 0.5,
-        death_penalty: float = 5.0,
+        bfs_space_penalty: float = 0.05,
+        bfs_tail_penalty: float = 0.05,
+        death_penalty: float = 100.0,
     ):
         self.width = int(width)
         self.height = int(height)
