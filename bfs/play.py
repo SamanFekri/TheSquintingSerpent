@@ -21,6 +21,7 @@ def set_global_seeds(seed: int):
 
 
 def main():
+    folder_name = Path(__file__).resolve().parent.name
     ap = argparse.ArgumentParser()
     ap.add_argument("--map", type=str, required=True)
     ap.add_argument("--model", type=str, default="models/best.pt")
@@ -56,8 +57,10 @@ def main():
         start_length=args.start_len,
         bfs_shaping=args.bfs,
     )
+    env.max_hunger = env.width * env.height
     env.use_global_random()
-    renderer = SnakeRenderer(env, cell_size=24, fps=args.fps, padding=90)
+    renderer_fps = args.fps if args.human else max(args.fps, 120)
+    renderer = SnakeRenderer(env, cell_size=24, fps=renderer_fps, padding=90)
 
     agent = None
     if not args.human:
@@ -71,17 +74,36 @@ def main():
     steps = 0
     start_time = time.time()
     logs = []
+    csv_file = None
+    csv_writer = None
+    csv_needs_header = False
+
+    if args.log_csv:
+        csv_path = Path(args.log_csv)
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
+        csv_needs_header = not csv_path.exists() or csv_path.stat().st_size == 0
+        csv_file = csv_path.open("a", newline="", encoding="utf-8")
+        csv_writer = csv.DictWriter(
+            csv_file, fieldnames=["game", "score", "steps", "duration_sec", "reason"]
+        )
+        if csv_needs_header:
+            csv_writer.writeheader()
 
     def record_result(reason: str):
         duration = time.time() - start_time
-        logs.append(
-            {
-                "game": game_idx,
-                "score": env.score,
-                "steps": steps,
-                "duration_sec": round(duration, 3),
-                "reason": reason,
-            }
+        entry = {
+            "game": game_idx,
+            "score": env.score,
+            "steps": steps,
+            "duration_sec": round(duration, 3),
+            "reason": reason,
+        }
+        logs.append(entry)
+        if csv_writer is not None:
+            csv_writer.writerow(entry)
+            csv_file.flush()
+        print(
+            f"Game {game_idx}/{args.games} -> score: {env.score}, steps: {steps}, reason: {reason}"
         )
 
     while game_idx <= args.games:
@@ -99,6 +121,7 @@ def main():
         steps += 1
 
         renderer.set_status([
+            f"Folder: {folder_name}",
             f"Mode: {'HUMAN' if args.human else 'AI'}",
             f"Model: {args.model if not args.human else '-'}",
             f"Rays: {args.num_rays}  Wrap: {args.wrap}",
@@ -109,7 +132,7 @@ def main():
 
         if done:
             record_result(info.get("reason", ""))
-            time.sleep(0.6)
+            time.sleep(0.6 if args.human else 0.05)
             game_idx += 1
             if game_idx > args.games:
                 break
@@ -120,17 +143,9 @@ def main():
 
     renderer.close()
 
-    if args.log_csv and logs:
-        csv_path = Path(args.log_csv)
-        csv_path.parent.mkdir(parents=True, exist_ok=True)
-        with csv_path.open("w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(
-                f, fieldnames=["game", "score", "steps", "duration_sec", "reason"]
-            )
-            writer.writeheader()
-            writer.writerows(logs)
-
-        print(f"Saved game logs to {csv_path.resolve()}")
+    if csv_file is not None:
+        csv_file.close()
+        print(f"Saved game logs to {Path(args.log_csv).resolve()}")
 
 
 if __name__ == "__main__":
