@@ -45,7 +45,6 @@ def main():
     env = SnakeEnv.from_map_file(
         args.map,
         vision_radius=args.N,
-        max_hunger=200,
         hunger_step=args.hunger_step,
         wrap=args.wrap,
         seed=args.seed,
