@@ -64,7 +64,7 @@ class SnakeEnv:
         height: int = 20,
         vision_radius: int = 1,
         max_hunger: int = 200,
-        hunger_step: float = 0.1,
+        hunger_step: float = 1.0,
         wrap: bool = True,
         wall_map: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
@@ -102,7 +102,7 @@ class SnakeEnv:
         map_path: str,
         vision_radius: int = 1,
         max_hunger: int = 200,
-        hunger_step: float = 0.1,
+        hunger_step: float = 1.0,
         wrap: bool = True,
         seed: Optional[int] = None,
     ) -> "SnakeEnv":
