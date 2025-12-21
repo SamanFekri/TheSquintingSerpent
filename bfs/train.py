@@ -39,7 +39,7 @@ def main():
     ap.add_argument("--num_rays", type=int, default=16)
     ap.add_argument("--start_len", type=int, default=1)
     ap.add_argument("--seed", type=int, default=42, help="Random seed")
-    ap.add_argument("--hunger_step", type=float, default=0.1, help="Hunger increase per step")
+    ap.add_argument("--hunger_step", type=float, default=1.0, help="Hunger increase per step")
     ap.add_argument("--wrap", action="store_true")
     ap.add_argument("--no-wrap", dest="wrap", action="store_false")
     ap.set_defaults(wrap=True)
@@ -76,6 +76,7 @@ def main():
         death_penalty=args.death_penalty,
         seed=args.seed,
     )
+    env.use_global_random()
 
     lidar_dim = 2 * args.num_rays
     agent = DQNAgent(vision_radius=args.N, lidar_dim=lidar_dim, lr=1e-3, gamma=0.99, batch_size=64)

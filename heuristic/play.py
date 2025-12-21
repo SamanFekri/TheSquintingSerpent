@@ -23,7 +23,7 @@ def main():
     ap.add_argument("--model", type=str, default="models/best.pt")
     ap.add_argument("--N", type=int, default=1)
     ap.add_argument("--seed", type=int, default=42, help="Random seed")
-    ap.add_argument("--hunger_step", type=float, default=0.1, help="Hunger increase per step")
+    ap.add_argument("--hunger_step", type=float, default=1.0, help="Hunger increase per step")
     ap.add_argument("--wrap", action="store_true")
     ap.add_argument("--no-wrap", dest="wrap", action="store_false")
     ap.set_defaults(wrap=True)
@@ -38,11 +38,11 @@ def main():
     env = SnakeEnv.from_map_file(
         args.map,
         vision_radius=args.N,
-        max_hunger=200,
         hunger_step=args.hunger_step,
         wrap=args.wrap,
         seed=args.seed,
     )
+    env.use_global_random()
     renderer = SnakeRenderer(env, cell_size=24, fps=args.fps)
 
     agent = None

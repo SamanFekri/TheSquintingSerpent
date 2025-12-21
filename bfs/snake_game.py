@@ -70,8 +70,8 @@ class SnakeEnv:
         width: int,
         height: int,
         vision_radius: int = 2,
-        max_hunger: int = 200,
-        hunger_step: float = 0.1,
+        max_hunger: Optional[int] = None,
+        hunger_step: float = 1.0,
         wrap: bool = True,
         wall_map: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
@@ -85,7 +85,7 @@ class SnakeEnv:
         self.width = int(width)
         self.height = int(height)
         self.N = int(vision_radius)
-        self.max_hunger = int(max_hunger)
+        self.max_hunger = None if max_hunger is None else int(max_hunger)
         self.hunger_step = float(hunger_step)
         self.wrap = bool(wrap)
         self.num_rays = int(num_rays)
@@ -117,13 +117,21 @@ class SnakeEnv:
 
         self.reset()
 
+    def use_global_random(self):
+        """Use the global ``random`` module for environment randomness.
+
+        This keeps food placement and other stochastic events aligned with
+        the global seed configured by callers.
+        """
+        self.rng = random
+
     @classmethod
     def from_map_file(
         cls,
         map_path: str,
         vision_radius: int = 2,
-        max_hunger: int = 200,
-        hunger_step: float = 0.1,
+        max_hunger: Optional[int] = None,
+        hunger_step: float = 1.0,
         wrap: bool = True,
         seed: Optional[int] = None,
         num_rays: int = 16,
@@ -171,6 +179,11 @@ class SnakeEnv:
         elif delta < -half:
             delta += size
         return delta
+
+    def _hunger_ratio(self) -> float:
+        if self.max_hunger is None or self.max_hunger <= 0:
+            return 0.0
+        return self.steps_since_food / self.max_hunger
 
     def _random_start(self):
         # pick a random free cell for the head
@@ -422,7 +435,7 @@ class SnakeEnv:
                     food_ch[j, i] = 1.0
 
         grid = np.stack([walls_ch, body_ch, food_ch], axis=0)
-        hunger = np.float32(self.steps_since_food / self.max_hunger)
+        hunger = np.float32(self._hunger_ratio())
 
         # smell vector
         if self.food is None:
@@ -486,8 +499,12 @@ class SnakeEnv:
         else:
             self.snake.pop()
             self.steps_since_food += self.hunger_step
-            hunger = self.steps_since_food / self.max_hunger
+            hunger = self._hunger_ratio()
             reward += -0.01 - 0.02 * hunger
+
+            if self.max_hunger is not None and self.steps_since_food >= self.max_hunger:
+                self.done = True
+                return self.get_obs(), reward - self.death_penalty, True, {"reason": "hunger"}
 
         # ✅ BFS reward shaping (environment-only)
         if self.bfs_shaping and not self.done:
@@ -587,7 +604,7 @@ class SnakeRenderer:
             color = (70, 220, 130) if idx == 0 else (50, 170, 105)
             pygame.draw.rect(self.screen, color, self._cell_rect(x, y), border_radius=6)
 
-        hunger = env.steps_since_food / env.max_hunger
+        hunger = env._hunger_ratio()
         hud = [f"Score: {env.score}   Hunger: {hunger:.2f}   Wrap: {env.wrap}"] + self.status_lines
 
         y0 = 10
