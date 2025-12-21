@@ -1,5 +1,6 @@
 # train.py
 import argparse
+import csv
 import os
 import random
 
@@ -31,6 +32,18 @@ def set_global_seeds(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
+def log_metrics(csv_path, row, fieldnames):
+    if not csv_path:
+        return
+
+    write_header = not os.path.exists(csv_path)
+    with open(csv_path, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if write_header:
+            writer.writeheader()
+        writer.writerow(row)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--games", type=int, default=2000)
@@ -46,6 +59,12 @@ def main():
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--max_steps", type=int, default=5000)
     ap.add_argument("--save_dir", type=str, default="models")
+    ap.add_argument(
+        "--log_csv",
+        type=str,
+        default="",
+        help="Path to write per-episode metrics (default: <save_dir>/training_log.csv)",
+    )
 
     args = ap.parse_args()
 
@@ -76,6 +95,8 @@ def main():
     eps_decay_games = max(1, args.games // 2)
 
     last_loss = None
+    log_csv_path = args.log_csv or os.path.join(args.save_dir, "training_log.csv")
+    metric_fields = ["episode", "score", "return", "epsilon", "best_score", "steps", "loss"]
 
     for ep in range(1, args.games + 1):
         obs = env.reset()
@@ -129,6 +150,20 @@ def main():
         print(
             f"EP {ep}/{args.games} | score={env.score} | return={ep_return:.2f} "
             f"| eps={epsilon:.3f} | best={best_score}"
+        )
+
+        log_metrics(
+            log_csv_path,
+            {
+                "episode": ep,
+                "score": env.score,
+                "return": ep_return,
+                "epsilon": epsilon,
+                "best_score": best_score,
+                "steps": steps,
+                "loss": "" if last_loss is None else float(last_loss),
+            },
+            metric_fields,
         )
 
     if renderer:

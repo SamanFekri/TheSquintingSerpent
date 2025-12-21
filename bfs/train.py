@@ -1,5 +1,6 @@
 # train.py
 import argparse
+import csv
 import os
 import random
 
@@ -31,6 +32,18 @@ def set_global_seeds(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
+def log_metrics(csv_path, row, fieldnames):
+    if not csv_path:
+        return
+
+    write_header = not os.path.exists(csv_path)
+    with open(csv_path, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if write_header:
+            writer.writeheader()
+        writer.writerow(row)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--map", type=str, required=True)
@@ -49,6 +62,12 @@ def main():
     ap.add_argument("--max_steps", type=int, default=5000)
     ap.add_argument("--save_dir", type=str, default="models")
     ap.add_argument("--resume", type=str, default="", help="path to checkpoint.pt")
+    ap.add_argument(
+        "--log_csv",
+        type=str,
+        default="",
+        help="Path to write per-episode metrics (default: <save_dir>/training_log.csv)",
+    )
 
     # BFS shaping controls
     ap.add_argument("--bfs", action="store_true")
@@ -105,6 +124,8 @@ def main():
     end_episode = start_episode + args.games - 1
     target_update_every = 500
     last_loss = None
+    log_csv_path = args.log_csv or os.path.join(args.save_dir, "training_log.csv")
+    metric_fields = ["episode", "score", "return", "epsilon", "best_score", "steps", "loss"]
 
     for ep in range(start_episode, end_episode + 1):
         obs = env.reset()
@@ -156,6 +177,20 @@ def main():
         agent.save_checkpoint(checkpoint_path, episode=ep, best_score=best_score)
 
         print(f"EP {ep}/{end_episode} | score={env.score} | return={ep_return:.2f} | eps={epsilon:.3f} | best={best_score}")
+
+        log_metrics(
+            log_csv_path,
+            {
+                "episode": ep,
+                "score": env.score,
+                "return": ep_return,
+                "epsilon": epsilon,
+                "best_score": best_score,
+                "steps": steps,
+                "loss": "" if last_loss is None else float(last_loss),
+            },
+            metric_fields,
+        )
 
     if renderer:
         renderer.close()
